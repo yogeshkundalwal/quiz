@@ -1,0 +1,68 @@
+/*
+	 CSS-Tricks Example
+	 by Chris Coyier
+	 http://css-tricks.com
+*/
+
+*					{ margin: 0; padding: 0; }
+body				{ font: 14px Georgia, serif; }
+
+#page-wrap		    { width: 500px; margin: 0 auto; }
+
+h1                  { margin: 25px 0; font: 14px Georgia, Serif; text-transform: uppercase; letter-spacing: 3px; }
+
+#quiz input {
+    vertical-align: middle;
+}
+
+#quiz ol {
+   margin: 0 0 10px 20px;
+}
+
+#quiz ol li {
+   margin: 0 0 20px 0;
+}
+
+#quiz ol li div {
+   padding: 4px 0;
+}
+
+#quiz h3 {
+   font-size: 17px; margin: 0 0 1px 0; color: #666;
+}
+
+#results {
+    font: 44px Georgia, Serif;
+}
+
+#testing span {
+	font-size: 17px; margin: 0 0 1px 0; color: #666;
+	
+}
+
+
+
+table {
+  border-collapse: collapse;
+  border-radius: 5px;
+}
+
+#myTable {
+  border: 1px solid #ddd;
+  font-size: 12px;
+}
+
+#myTable th,
+#myTable td {
+  text-align: left;
+  padding: 8px;
+}
+
+#myTable tr {
+  border-bottom: 1px solid #ddd;
+}
+
+#myTable tr.header,
+#myTable tr:hover {
+  background-color: #f1f1f1;
+}

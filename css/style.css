@@ -12,7 +12,7 @@ body				{ font: 14px Georgia, serif; }
 h1                  { margin: 25px 0; font: 14px Georgia, Serif; text-transform: uppercase; letter-spacing: 3px; }
 
 #quiz input {
-    vertical-align: middle;
+	vertical-align: middle;
 }
 
 #quiz ol {
@@ -32,7 +32,7 @@ h1                  { margin: 25px 0; font: 14px Georgia, Serif; text-transform:
 }
 
 #results {
-    font: 44px Georgia, Serif;
+	font: 44px Georgia, Serif;
 }
 
 #testing span {
@@ -40,29 +40,25 @@ h1                  { margin: 25px 0; font: 14px Georgia, Serif; text-transform:
 	
 }
 
-
-
+div.a {
+		text-indent: 50px;
+	}
 table {
-  border-collapse: collapse;
-  border-radius: 5px;
+
+	border-collapse: collapse;
+	width: 100%;
 }
 
-#myTable {
-  border: 1px solid #ddd;
-  font-size: 12px;
-}
+  th, td {
+	text-align: left;
+	padding: 8px;
+  }
 
-#myTable th,
-#myTable td {
-  text-align: left;
-  padding: 8px;
-}
+  tr:nth-child(even){background-color: #f2f2f2}
 
-#myTable tr {
-  border-bottom: 1px solid #ddd;
-}
+  th {
+	background-color: #4CAF50;
+	color: white;
+  }
 
-#myTable tr.header,
-#myTable tr:hover {
-  background-color: #f1f1f1;
-}
+

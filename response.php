@@ -1,49 +1,45 @@
 <?php
 require 'constants.php';
-
+// include database file
+include_once 'database.php';
+//DB connection
+$db = new DbManager();
+$m = $db->getConnection();
+$dbname      = 'quiz';
+$collection  = 'quiz_data';
 ##################################### no of quiz given by a student till now ########
-$m = new MongoDB\Driver\Manager("mongodb://localhost:27017");
-function quiz_given_bystudent() {
-	$m = new MongoDB\Driver\Manager("mongodb://localhost:27017");
-	$filter1= array('student_name' => "Yogesh Kundalwal");
-	$options1 = [];
-	$query1 = new MongoDB\Driver\Query($filter1, $options1);
-	$rows1 = $m->executeQuery('Data.given_quiz', $query1);
-	foreach ($rows1 as  $value) {
-		$quiz_data[] = json_decode(json_encode($value),true);
-	}
-	$quiz_count = count($quiz_data);
-	return $quiz_count;
-}
-###################################################################################
-############### delete entry in given quiz collection if strudents have less then 80 %
-function deletequiz(){
-	if($no_of_studentabove80 < 80){
-		$bul = new MongoDB\Driver\BulkWrite;
-		$bul->delete(['quiz_id' => $quiz_id], []);
-		$result = $manager->executeBulkWrite('Data.given_quiz', $bul);
-	}
-}
-#################################################################################3
+// function quiz_given_bystudent() {
+// 	$m = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+// 	$filter1= array('student_name' => "Yogesh Kundalwal");
+// 	$options1 = [];
+// 	$query1 = new MongoDB\Driver\Query($filter1, $options1);
+// 	$rows1 = $m->executeQuery('Data.given_quiz', $query1);
+// 	$quiz_data = json_decode(json_encode(iterator_to_array($rows1)),true);
+// 	$quiz_count = count($quiz_data);
+// 	return $quiz_count;
+// }
+#####################################################################################
 $filter=[];
 $options = [];
 $query = new MongoDB\Driver\Query($filter, $options);
-$rows = $m->executeQuery('Data.Collection', $query);
-// debug($rows)
-foreach ($rows as  $value) {
-	$data[] = json_decode(json_encode($value),true);
-}
+$rows = $m->executeQuery("$dbname.$collection", $query);
+$data = json_decode(json_encode(iterator_to_array($rows)),true);
 $uni_session[] = $data['0']['session'];
-$centers[] = $data['0']['center_id'];
+$programs[] = $data['0']['programIds'];
+// $centers[] = $data['0']['center_id'];
 $uni_quiz_id[] = $data['0']['quiz_id'];
 foreach ($data as $value) {
 	if (!in_array($value['session'], $uni_session))
 	{
 		$uni_session[] = $value['session'];
 	}
-	if (!in_array($value['center_id'], $centers))
+	// if (!in_array($value['center_id'], $centers))
+	// {
+	// 	$centers[] = $value['center_id']; 
+	// }
+	if (!in_array($value['programIds'], $centers))
 	{
-		$centers[] = $value['center_id']; 
+		$programs[] = $value['programIds']; 
 	}
 	if (!in_array($value['quiz_id'], $uni_quiz_id))
 	{
@@ -62,8 +58,24 @@ foreach ($data as $value) {
 			div.a {
 			  text-indent: 50px;
 			}
-		</style>
+			table {
 
+				  border-collapse: collapse;
+				  width: 100%;
+				}
+
+				th, td {
+				  text-align: left;
+				  padding: 8px;
+				}
+
+				tr:nth-child(even){background-color: #f2f2f2}
+
+				th {
+				  background-color: #4CAF50;
+				  color: white;
+				}
+		</style>
 		<!-- <link rel="stylesheet" type="text/css" href="css/style.css" /> -->
 	</head>
 	<body>
@@ -76,8 +88,8 @@ foreach ($data as $value) {
 				<?php endforeach ?>
 			</select>
 			<select name = 'center_id'>
-			<option value="">Select center</option>
-				<?php foreach ($centers as $value) : ?>
+			<option value="">Select program</option>
+				<?php foreach ($programs as $value) : ?>
 					<option value="<?= $value ?>"><?= $value ?></option>
 				<?php endforeach ?>
 			</select>
@@ -91,21 +103,19 @@ foreach ($data as $value) {
 		</form>
 		<?php 
 		if(isset($_POST['quiz_id']) && !empty($_POST['quiz_id']) && isset($_POST['session_id']) && !empty($_POST['session_id']) && isset($_POST['center_id']) && !empty($_POST['center_id'])) : 
-			$filter_a = array('center_id' => $_POST['center_id'], 'session' => $_POST['session_id'], 'quiz_id' => $_POST['quiz_id'] );
+			$filter_a = array('programIds' => $_POST['center_id'], 'session' => $_POST['session_id'], 'quiz_id' => $_POST['quiz_id'] );
 			$options_a = [];
 			$query_a = new MongoDB\Driver\Query($filter_a, $options_a);
-			$rows_a = $m->executeQuery('Data.Collection', $query_a);
-			foreach ($rows_a as  $value) {
-				$analytics_data[] = json_decode(json_encode($value),true);
-			}
+			$rows_a = $m->executeQuery("$dbname.$collection", $query_a);
+			$analytics_data = json_decode(json_encode(iterator_to_array($rows_a)),true);
 			############ API hit to get questions and options
 			$jsonArr = array(
 				'quizId' => $_POST['quiz_id']
-				// 'secuirty_token' => $_POST['ecuirty_token']
 			);
-			$headers[1] = 'Content-Type: application/json';
+			$headers[0] = 'Content-Type: application/json';
+			$headers[1] = 'securityToken: aTA3eEI2bHNMTXpNd3RiQU5GUUt1QnNQd2N4akJUTWhlSlBJOFQyb3hJZ0JuNW0xMkZVY2pURmo1M3l3VU9NSg==';
 			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, 'https://pulse.virohan.com/myclassroom/quizData');
+			curl_setopt($ch, CURLOPT_URL, 'https://api.virohan.com/myclassroom/v1/quiz/info');
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($jsonArr));
@@ -165,27 +175,39 @@ foreach ($data as $value) {
 				<?php foreach ($options_ as $option) : ?>
 					<?php
 					if( $responseData_['quizQuestions'][$key]['mcq_option'.$option] != "" ):
-						if(isset($value[$option]) && !empty($value[$option])){  ?>
-							<span> Selected option <?= $option ?> : <strong><?= $responseData_['quizQuestions'][$key]['mcq_option'.$option]?></strong> = <?= ($value[$option]/$no_of_student)*100 ?>%</span>
-							<br>
+						if( $analytics_data['0']['correct_answer'][$key] == $option ) {
+							if(isset($value[$option]) && !empty($value[$option])){  ?>
+								<span style="color: green;"> Selected option <?= $option ?> : <strong><?= $responseData_['quizQuestions'][$key]['mcq_option'.$option]?></strong> = <?= ($value[$option]/$no_of_student)*100 ?>%</span>
+								<br>
 							<?php } 
-						else{ ?>
-							<span>Selected option <?= $option ?> : <strong><?= $responseData_['quizQuestions'][$key]['mcq_option'.$option]?></strong> = 0</span>
-							<br>	
-						<?php } 
+							else{ ?>
+								<span style="color: green;">Selected option <?= $option ?> : <strong><?= $responseData_['quizQuestions'][$key]['mcq_option'.$option]?></strong> = 0</span>
+								<br>	
+							<?php } 
+						}
+						else {
+							if(isset($value[$option]) && !empty($value[$option])){  ?>
+								<span> Selected option <?= $option ?> : <strong><?= $responseData_['quizQuestions'][$key]['mcq_option'.$option]?></strong> = <?= ($value[$option]/$no_of_student)*100 ?>%</span>
+								<br>
+							<?php } 
+							else{ ?>
+								<span>Selected option <?= $option ?> : <strong><?= $responseData_['quizQuestions'][$key]['mcq_option'.$option]?></strong> = 0</span>
+								<br>	
+							<?php } 
+						}
 					endif;?>
 				<?php endforeach ?> 
 				<br>
 			<?php endforeach ?>
 				</div>
-				<table id="myTable" border="1">
+				<table>
 					<thead>
 						<tr>
-							<td>student_id</td>
-							<td>student_name</td>
-							<td>Performance</td>
-							<td>Answered Correctly</td>
-							<td>Answered Inorrectly</td>
+							<th>student_id</th>
+							<th>student_name</th>
+							<th>Performance</th>
+							<th>Answered Correctly</th>
+							<th>Answered Inorrectly</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -200,8 +222,11 @@ foreach ($data as $value) {
 						<?php endforeach ?>
 					</tbody>
 				</table>
-				<button onclick="deletequiz()">Repeat Quiz</button>
-				<p id="demo"></p>
+				<font action = 'deletequiz.php'>
+					<input type = "hidden" name="percentage" value="<?= $no_of_studentabove80; ?>"  />
+					<input type="submit" name="repeat_quiz">
+				</font>
+				<!-- <p id="demo"></p> -->
 			<?php endif ?>
 	</body>
 </html>

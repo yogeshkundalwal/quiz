@@ -7,7 +7,7 @@
 </head>
 <body>
 	<center>
-	<form action="quiz_load.php" method="POST">
+	<form action="quiz_load.php" method="GET">
 		<label>
 			<span>enter your quiz_id: </span>	
 			<input type="number" name="quiz_id" />

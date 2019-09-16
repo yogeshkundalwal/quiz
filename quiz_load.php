@@ -1,15 +1,24 @@
 <?php
+//debug file
 require 'constants.php';
-
-
-if( isset($_POST['quiz_id']) && !empty($_POST['quiz_id']) ) {
+// include database file
+include_once 'database.php';
+//DB connection
+$db = new DbManager();
+$m = $db->getConnection();
+//db name and table
+$dbname = 'quiz';
+$collection = 'given_quiz';
+########################## API hit
+if( isset($_GET['quiz_id']) && !empty($_GET['quiz_id']) ) {
 	$jsonArr = array(
-		'quizId' => $_POST['quiz_id']
-		// 'secuirty_token' => $_POST['ecuirty_token']
+		'quizId' => $_GET['quiz_id']
 	);
-	$headers[1] = 'Content-Type: application/json';
+	$headers[0] = 'Content-Type: application/json';
+	// $headers[1] = 'securityToken: aTA3eEI2bHNMTXpNd3RiQU5GUUt1QnNQd2N4akJUTWhlSlBJOFQyb3hJZ0JuNW0xMkZVY2pURmo1M3l3VU9NSg==';
+	$headers[1] = 'securityToken: '.$_GET['securityToken'];
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, 'https://pulse.virohan.com/myclassroom/quizData');
+	curl_setopt($ch, CURLOPT_URL, 'https://api.virohan.com/myclassroom/v1/quiz/info');
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 	curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($jsonArr));
@@ -22,28 +31,27 @@ if( isset($_POST['quiz_id']) && !empty($_POST['quiz_id']) ) {
 		$mcqAnswerTypes = array('a', 'b', 'c', 'd', 'e');
 	} else {
 		// echo "hi this is end!";
-		die($result['msg']);
+		die($result['message']);
 	}
 } else {
-	header("Location: index.php");
+	die('Enter a quiz_id');
+	// header("Location: Index.php");
 }
 ################### checking that student already given the test or not ##############
-$m = new MongoDB\Driver\Manager("mongodb://localhost:27017");
-$filter= array('student_name' => $responseData['studentInfo']['name']);
+$filter= array('student_name' => $responseData['studentInfo']['first_name']." ".$responseData['studentInfo']['last_name'] );
 $options = [];
 $query = new MongoDB\Driver\Query($filter, $options);
-$rows = $m->executeQuery('Data.given_quiz', $query);
-foreach ($rows as  $value) {
-	$data[] = json_decode(json_encode($value),true);
-}
-foreach ($data as $key => $value) {
-	if($value['quiz_id'] == $_POST['quiz_id']) {
-		echo "you have given this quiz before!";
-		// die("you have given this quiz before!");
-	}
-}
+$rows = $m->executeQuery("$dbname.$collection", $query);
+$data = json_decode(json_encode(iterator_to_array($rows)),true);
+if( count($data) > 0 ) {
+	foreach ($data as $key => $value) {
+		if($value['quiz_id'] == $_GET['quiz_id']) {
+			$message = "You have already given the quiz.";
+			echo "<script type='text/javascript'>alert('$message');</script>";
+			die();
+		}
+	}}
 ######################################################################################
-
 ?>
 <!DOCTYPE html>
 <html>
@@ -60,8 +68,8 @@ foreach ($data as $key => $value) {
 		  <input type = "hidden" name="_id" value="<?= $_id; ?>"  />
 		  <input type = "hidden" name="quiz_id" value="<?= $responseData['quizInfo']['id']; ?>"  />
 		  <input type = "hidden" name="student_id" value="<?= $responseData['studentInfo']['id']; ?>"  />
-		  <input type = "hidden" name="student_name" value="<?= $responseData['studentInfo']['name']; ?>"  />
-		 <!--  <input type = "hidden" name="center_id" value="<?= $responseData['studentInfo']['center']; ?>"  /> -->
+		  <input type = "hidden" name="student_name" value="<?= $responseData['studentInfo']['first_name']." ".$responseData['studentInfo']['last_name']; ?>"  />
+		  <input type = "hidden" name="programIds" value="<?= $responseData['quizInfo']['programIds']; ?>"  />
 			<ol>
 				<?php foreach( $responseData['quizQuestions'] as $key => $question ) : ?>
 					<?php if( !empty($question['mcq_question_id']) ) : ?>
